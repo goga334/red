@@ -132,4 +132,17 @@ CORS_ORIGIN_ALLOW_ALL = False
 
 CORS_ORIGIN_WHITELIST = (
        'http://localhost:3000',
+       'http://172.20.0.2:3000',
+       'http://172.20.0.3:3000',
+       'http://172.20.0.4:3000',
+
 )
+
+CHANNEL_LAYERS = {
+        'default' : {
+            'BACKEND': 'channels_redis.core.RedisChannelLayer',
+            'CONFIG' : {
+                "hosts" : [('redis', 6379)], 
+                },
+            },
+        }
