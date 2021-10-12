@@ -4,7 +4,7 @@ services:
     restart: always
     image: redis:5
     ports:
-      - "6379:6379"
+      - "6378:6379"
     networks:
       - db-net
 
@@ -13,11 +13,7 @@ services:
     container_name: code
     command : bash -c "python manage.py migrate &&
                       python manage.py runserver 0.0.0.0:8000"
-    # env_file:
-    #   - ./backend/settings.ini
-    build:
-      context: ./backend/
-      dockerfile: Dockerfile
+    image: jkl334/red_project
     ports:
       - "8000:8000"
     depends_on:
@@ -29,9 +25,7 @@ services:
     restart: always
     command : npm start
     container_name: front
-    build:
-      context: ./frontend/
-      dockerfile: Dockerfile
+    image: jkl334/red_frontend
     ports:
       - "3000:3000"
     stdin_open: true
