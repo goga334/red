@@ -1,16 +1,74 @@
 import React, { Component } from 'react';
 import UserService  from  './UserService';
+import  GroupService  from  './GroupService';
 
 const  userService  =  new  UserService();
+const  groupService  =  new  GroupService();
 
 class  UserCreateUpdate  extends  Component {
 
     constructor(props) {
         super(props);
+        this.state  = {
+            groups: [],
+            nextPageURL:  ''
+        };
+        this.nextPage  =  this.nextPage.bind(this);
+        
         this.handleSubmit = this.handleSubmit.bind(this);
     }
 
+    nextPage(){
+        var  self  =  this;
+        groupService.getGroupByURL(this.state.nextPageURL).then((result) => {
+            self.setState({ groups:  result.data, nextPageURL:  result.nextlink})
+        });
+    }
+
     componentDidMount(){
+        var  self  =  this;
+
+        var visited = [];
+        var next = '';
+
+        groupService.getGroups().then(function (result) {
+            self.setState({ groups:  result.data, nextPageURL:  result.nextlink})
+            next = self.state.nextPageURL
+            let i = 0;
+            while(!visited.includes(next) && i < 5){
+            visited.push(next)
+            groupService.getGroupByURL(self.state.nextPageURL).then((result) => {
+                self.setState({ groups:  result.data, nextPageURL:  result.nextlink})
+                groupService.getGroups().then(function (result) {
+                    var sel=document.getElementById("mySelect");
+            
+                        for (let i=0; i<self.state.groups.length; i++){
+                            var option = document.createElement('option');
+                            option.value = self.state.groups[i].name;
+                            option.text = self.state.groups[i].name;
+                            sel.appendChild(option);
+                        }
+                    });
+                next = self.state.nextPageURL;
+                self.nextPage();
+            });
+
+                i+=1;
+
+            }
+        });
+
+        groupService.getGroups().then(function (result) {
+        var sel=document.getElementById("mySelect");
+
+            for (let i=0; i<result.data.length; i++){
+                var option = document.createElement('option');
+                option.value = result.data[i].name;
+                option.text = result.data[i].name;
+                sel.appendChild(option);
+            }
+        });
+
         const { match: { params } } =  this.props;
         if(params  &&  params.pk)
         {
@@ -62,6 +120,7 @@ class  UserCreateUpdate  extends  Component {
     }
 
     render() {
+
         return (
           <form onSubmit={this.handleSubmit}>
           <div className="form-group">
@@ -70,14 +129,18 @@ class  UserCreateUpdate  extends  Component {
               <input className="form-control" type="text" ref='username' />
 
             <label>
-              Group:</label>
-              <input className="form-control" type="text" ref='group'/>
+              Group:</label><br></br>
+              
+                    
+              <select id="mySelect"  class="form-select form-select-lg mb-3" size="1" ref='group'>   
+              </select><br></br>
 
               <a className="btn btn-primary mt-4" onClick=  {this.handleSubmit} href="/user/" >Submit</a>
 
             </div>
           </form>
         );
+        
     }
 }
 export default UserCreateUpdate;
