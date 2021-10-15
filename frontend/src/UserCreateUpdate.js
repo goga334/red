@@ -25,7 +25,7 @@ class  UserCreateUpdate  extends  Component {
 
         var gr = [];
 
-        await groupService.getAll('group').then((result) => {
+        await groupService.getAll().then((result) => {
             self.setState({ groups:  result.data, 
                             nextPageURL:  result.nextlink, 
                             numPages: result.numpages})

@@ -10,23 +10,15 @@ class  GroupCreateUpdate  extends  Component {
         this.handleSubmit = this.handleSubmit.bind(this);
     }
 
-    render() {
-        return (
-          <form onSubmit={this.handleSubmit} href = "/group/">
-          <div className="form-group">
-            <label>
-              Group name:</label>
-              <input className="form-control" type="text" ref='name' />
-
-            <label>
-              Description:</label>
-              <input className="form-control" type="text" ref='description'/>
-
-              <input className="btn btn-primary mt-4"  type="submit" value="Submit" />
-
-            </div>
-          </form>
-        );
+    componentDidMount(){
+        const { match: { params } } =  this.props;
+        if(params  &&  params.pk)
+        {
+            groupService.getById(params.pk).then((c)=>{
+                this.refs.name.value  =  c.name;
+                this.refs.description.value  =  c.description;
+            })
+        }
     }
 
     handleSubmit(event) {
@@ -67,15 +59,23 @@ class  GroupCreateUpdate  extends  Component {
             });
         }
 
-        componentDidMount(){
-            const { match: { params } } =  this.props;
-            if(params  &&  params.pk)
-            {
-                groupService.getById(params.pk).then((c)=>{
-                    this.refs.name.value  =  c.name;
-                    this.refs.description.value  =  c.description;
-                })
-            }
-        }
+    render() {
+        return (
+          <form onSubmit={this.handleSubmit} href = "/group/">
+          <div className="form-group">
+            <label>
+              Group name:</label>
+              <input className="form-control" type="text" ref='name' />
+
+            <label>
+              Description:</label>
+              <input className="form-control" type="text" ref='description'/>
+
+              <input className="btn btn-primary mt-4"  type="submit" value="Submit" />
+
+            </div>
+          </form>
+        );
+    }    
 }
 export default GroupCreateUpdate;
