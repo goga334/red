@@ -1,34 +1,29 @@
 import axios from 'axios';
 const API_URL = 'http://localhost:8000';
 
-
-
 export default class GroupService{
 
-    constructor(){}
-
-
-    getGroups() {
+    getAll() {
         const url = `${API_URL}/api/group/`;
         return axios.get(url).then(response => response.data);
     }
-    getGroupByURL(link){
+    getByURL(link){
         const url = `${API_URL}${link}`;
         return axios.get(url).then(response => response.data);
     }
-    getGroup(pk) {
+    getById(pk) {
         const url = `${API_URL}/api/group_add/${pk}`;
         return axios.get(url).then(response => response.data);
     }
-    deleteGroup(group){
+    delete(group){
         const url = `${API_URL}/api/group_add/${group.pk}`;
         return axios.delete(url);
     }
-    createGroup(group){
+    create(group){
         const url = `${API_URL}/api/group/`;
         return axios.post(url,group);
     }
-    updateGroup(group){
+    update(group){
         const url = `${API_URL}/api/group_add/${group.pk}`;
         return axios.put(url,group);
     }

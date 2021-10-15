@@ -1,14 +1,14 @@
 import  React, { Component } from  'react';
-import UserService  from  './UserService';
-import  GroupService  from  './GroupService';
+import Service  from  './Service';
 
-const  userService  =  new  UserService();
-const  groupService  =  new  GroupService();
+const  userService  =  new  Service();
+const  groupService  =  new  Service();
 
 class  GroupList  extends  Component {
 
     constructor(props) {
         super(props);
+        this.dest = 'group'
         this.state  = {
             groups: [],
             nextPageURL:  ''
@@ -19,22 +19,24 @@ class  GroupList  extends  Component {
 
     componentDidMount() {
         var  self  =  this;
-        groupService.getGroups().then(function (result) {
+        groupService.getAll(this.dest).then(function (result) {
             self.setState({ groups:  result.data, nextPageURL:  result.nextlink})
         });
     }
 
     handleDelete(e,groupToDelete){
+
         var  self  =  this;
-        var usersInGroups = [];
-        userService.getUsers().then(function (result) {
-            result.data.map(c => usersInGroups.push(c.group))
-            if (!usersInGroups.includes(groupToDelete.name)){
-                groupService.deleteGroup({pk :  groupToDelete.pk}).then(()=>{
-                    var  newArr  =  self.state.groups.filter(function(obj) {
+        var data = {value: groupToDelete.name,
+                    find: 1};
+        userService.checkByValue(data, self.dest).then(function(result) {
+            console.log(result)
+            if (result === '') {
+                groupService.delete({pk :  groupToDelete.pk}, self.dest).then(()=>{
+                    var newArr  =  self.state.groups.filter(function(obj) {
                         return  obj.pk  !==  groupToDelete.pk;
                     });
-                    self.setState({groups:  newArr})
+                self.setState({groups:  newArr})
                 });
             }
             else{alert("Cannot delete a group that has users!")}
@@ -43,17 +45,14 @@ class  GroupList  extends  Component {
 
     nextPage(){
         var  self  =  this;
-        groupService.getGroupByURL(this.state.nextPageURL).then((result) => {
+        groupService.getByURL(this.state.nextPageURL, this.dest).then((result) => {
             self.setState({ groups:  result.data, nextPageURL:  result.nextlink})
         });
     }
 
     render() {
-
         return (
-
         <div  className="group--list">
-
             <table  className="table">
                 <thead  key="thead">
                 <tr>
@@ -78,7 +77,6 @@ class  GroupList  extends  Component {
             </table>
             <button  className="btn btn-primary mr-4 mb-4"  onClick=  {  this.nextPage  }>Next page</button>
             <a className="btn btn-primary mb-4" href="/group_add/">Add group</a>
-            
         </div>
         );
     }

@@ -1,12 +1,13 @@
 import  React, { Component } from  'react';
-import  UserService  from  './UserService';
+import  Service  from  './Service';
 
-const  userService  =  new  UserService();
+const  userService  =  new  Service();
 
 class  UserList  extends  Component {
 
     constructor(props) {
         super(props);
+        this.dest = 'user'
         this.state  = {
             users: [],
             nextPageURL:  ''
@@ -17,14 +18,14 @@ class  UserList  extends  Component {
 
     componentDidMount() {
         var  self  =  this;
-        userService.getUsers().then(function (result) {
+        userService.getAll('user').then(function (result) {
             self.setState({ users:  result.data, nextPageURL:  result.nextlink})
         });
     }
 
     handleDelete(e,pk){
         var  self  =  this;
-        userService.deleteUser({pk :  pk}).then(()=>{
+        userService.delete({pk :  pk}, 'user').then(()=>{
             var  newArr  =  self.state.users.filter(function(obj) {
                 return  obj.pk  !==  pk;
             });
@@ -34,7 +35,7 @@ class  UserList  extends  Component {
 
     nextPage(){
         var  self  =  this;
-        userService.getUserByURL(this.state.nextPageURL).then((result) => {
+        userService.getByURL(this.state.nextPageURL, 'user').then((result) => {
             self.setState({ users:  result.data, nextPageURL:  result.nextlink})
         });
     }

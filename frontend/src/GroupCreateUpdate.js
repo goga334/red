@@ -1,12 +1,13 @@
 import  React, { Component } from  'react';
-import  GroupService  from  './GroupService';
+import Service  from  './Service';
 
-const  groupService  =  new  GroupService();
+const  groupService  =  new  Service();
 
 class  GroupCreateUpdate  extends  Component {
 
     constructor(props) {
         super(props);
+        this.dest = 'group'
         this.handleSubmit = this.handleSubmit.bind(this);
     }
 
@@ -42,29 +43,32 @@ class  GroupCreateUpdate  extends  Component {
     }
 
     handleCreate(){
-        groupService.createGroup(
+        groupService.create(
             {
+            "find": 0,
+            "obj": "group",
             "name":  this.refs.name.value,
             "description":  this.refs.description.value
-            }).then((result)=>{
+            }, 
+            this.dest).then((result)=>{
                     alert("Group created!");
             }).catch((e)=>{
-                    alert(e);//'There was an error! Please re-check your form.');
+                    alert(e.response.data.name);
             });
     }
 
     handleUpdate(pk){
-        groupService.updateGroup(
+        groupService.update(
             {
             "pk":  pk,
+            "obj": "group",
             "name":  this.refs.name.value,
             "description":  this.refs.description.value
-            }
-            ).then((result)=>{
-        
+            },
+            this.dest).then((result)=>{
                 alert("Group updated!");
-            }).catch(()=>{
-                alert('There was an error! Please re-check your form.');
+            }).catch((e)=>{
+                alert(e.response.data.name);
             });
         }
 
@@ -72,7 +76,7 @@ class  GroupCreateUpdate  extends  Component {
             const { match: { params } } =  this.props;
             if(params  &&  params.pk)
             {
-                groupService.getGroup(params.pk).then((c)=>{
+                groupService.getById(params.pk, this.dest).then((c)=>{
                     this.refs.name.value  =  c.name;
                     this.refs.description.value  =  c.description;
                 })

@@ -20,8 +20,8 @@ from django.conf.urls import url
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    url(r'^api/user/$', views.user_list),
-    url(r'^api/user_add/(?P<pk>[0-9]+)$', views.user_detail),
-    url(r'^api/group/$', views.group_list),
-    url(r'^api/group_add/(?P<pk>[0-9]+)$', views.group_detail),
+    url(r'^api/user/$', views.list),
+    url(r'^api/user_add/(?P<pk>[0-9]+)$', views.detail),
+    url(r'^api/group/$', views.list),
+    url(r'^api/group_add/(?P<pk>[0-9]+)$', views.detail),
 ]

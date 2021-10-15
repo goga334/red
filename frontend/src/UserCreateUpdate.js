@@ -1,78 +1,56 @@
 import React, { Component } from 'react';
-import UserService  from  './UserService';
-import  GroupService  from  './GroupService';
+import Service  from  './Service';
 
-const  userService  =  new  UserService();
-const  groupService  =  new  GroupService();
+const  userService  =  new  Service();
+const  groupService  =  new  Service();
 
 class  UserCreateUpdate  extends  Component {
 
     constructor(props) {
         super(props);
+        this.dest = 'user'
         this.state  = {
             groups: [],
-            nextPageURL:  ''
+            nextPageURL:  '',
+            numPages: 0
         };
-        this.nextPage  =  this.nextPage.bind(this);
         
         this.handleSubmit = this.handleSubmit.bind(this);
     }
 
-    nextPage(){
+
+    async componentDidMount(){
         var  self  =  this;
-        groupService.getGroupByURL(this.state.nextPageURL).then((result) => {
-            self.setState({ groups:  result.data, nextPageURL:  result.nextlink})
+
+        var gr = [];
+
+        await groupService.getAll('group').then((result) => {
+            self.setState({ groups:  result.data, 
+                            nextPageURL:  result.nextlink, 
+                            numPages: result.numpages})
+            gr.push.apply(gr, result.data)
         });
-    }
-
-    componentDidMount(){
-        var  self  =  this;
-
-        var visited = [];
-        var next = '';
-
-        groupService.getGroups().then(function (result) {
-            self.setState({ groups:  result.data, nextPageURL:  result.nextlink})
-            next = self.state.nextPageURL
-            let i = 0;
-            while(!visited.includes(next) && i < 5){
-            visited.push(next)
-            groupService.getGroupByURL(self.state.nextPageURL).then((result) => {
-                self.setState({ groups:  result.data, nextPageURL:  result.nextlink})
-                groupService.getGroups().then(function (result) {
-                    var sel=document.getElementById("mySelect");
-            
-                        for (let i=0; i<self.state.groups.length; i++){
-                            var option = document.createElement('option');
-                            option.value = self.state.groups[i].name;
-                            option.text = self.state.groups[i].name;
-                            sel.appendChild(option);
-                        }
+        
+        for (let i=1; i<self.state.numPages; i++){
+            await groupService.getByURL(this.state.nextPageURL, this.dest).then((result) => {
+                    self.setState({ groups:  result.data, nextPageURL:  result.nextlink})
+                    gr.push.apply(gr, result.data)
                     });
-                next = self.state.nextPageURL;
-                self.nextPage();
-            });
+        }
 
-                i+=1;
-
-            }
-        });
-
-        groupService.getGroups().then(function (result) {
         var sel=document.getElementById("mySelect");
-
-            for (let i=0; i<result.data.length; i++){
+            for (let i=0; i<gr.length; i++){
                 var option = document.createElement('option');
-                option.value = result.data[i].name;
-                option.text = result.data[i].name;
+                option.value = gr[i].name;
+                option.text = gr[i].name;
                 sel.appendChild(option);
             }
-        });
+
 
         const { match: { params } } =  this.props;
         if(params  &&  params.pk)
         {
-            userService.getUser(params.pk).then((c)=>{
+            userService.getById(params.pk, this.dest).then((c)=>{
                 this.refs.username.value  =  c.username;
                 this.refs.group.value  =  c.group;
             })
@@ -80,29 +58,31 @@ class  UserCreateUpdate  extends  Component {
     }
 
     handleCreate(){
-        userService.createUser(
+        userService.create(
             {
+            "find": 0,
             "username":  this.refs.username.value,
             "group":  this.refs.group.value
-            }).then((result)=>{
+            },
+            this.dest).then((result)=>{
                     alert("User created!");
-            }).catch(()=>{
-                    alert('There was an error! Please re-check your form.');
+            }).catch((e)=>{
+                    alert(e.response.data.username);
             });
     }
 
     handleUpdate(pk){
-        userService.updateUser(
+        userService.update(
             {
             "pk":  pk,
             "username":  this.refs.username.value,
             "group":  this.refs.group.value
-            }
-            ).then((result)=>{
+            },
+            this.dest).then((result)=>{
         
                 alert("User updated!");
-            }).catch(()=>{
-                alert('There was an error! Please re-check your form.');
+            }).catch((e)=>{
+                alert(e.response.data.username);
             })
         ;
     }
