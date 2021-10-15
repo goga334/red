@@ -1,14 +1,13 @@
 import React, { Component } from 'react';
 import Service  from  './Service';
 
-const  userService  =  new  Service();
-const  groupService  =  new  Service();
+const  userService  =  new  Service('user');
+const  groupService  =  new  Service('group');
 
 class  UserCreateUpdate  extends  Component {
 
     constructor(props) {
         super(props);
-        this.dest = 'user'
         this.state  = {
             groups: [],
             nextPageURL:  '',
@@ -16,10 +15,12 @@ class  UserCreateUpdate  extends  Component {
         };
         
         this.handleSubmit = this.handleSubmit.bind(this);
+        this.createSelect = this.createSelect.bind(this);
     }
 
 
-    async componentDidMount(){
+    async createSelect(){
+
         var  self  =  this;
 
         var gr = [];
@@ -32,7 +33,7 @@ class  UserCreateUpdate  extends  Component {
         });
         
         for (let i=1; i<self.state.numPages; i++){
-            await groupService.getByURL(this.state.nextPageURL, this.dest).then((result) => {
+            await groupService.getByURL(this.state.nextPageURL).then((result) => {
                     self.setState({ groups:  result.data, nextPageURL:  result.nextlink})
                     gr.push.apply(gr, result.data)
                     });
@@ -45,12 +46,15 @@ class  UserCreateUpdate  extends  Component {
                 option.text = gr[i].name;
                 sel.appendChild(option);
             }
+    }
 
+    componentDidMount(){
 
+        this.createSelect()
         const { match: { params } } =  this.props;
         if(params  &&  params.pk)
         {
-            userService.getById(params.pk, this.dest).then((c)=>{
+            userService.getById(params.pk).then((c)=>{
                 this.refs.username.value  =  c.username;
                 this.refs.group.value  =  c.group;
             })
@@ -63,8 +67,7 @@ class  UserCreateUpdate  extends  Component {
             "find": 0,
             "username":  this.refs.username.value,
             "group":  this.refs.group.value
-            },
-            this.dest).then((result)=>{
+            }).then((result)=>{
                     alert("User created!");
             }).catch((e)=>{
                     alert(e.response.data.username);
@@ -77,8 +80,7 @@ class  UserCreateUpdate  extends  Component {
             "pk":  pk,
             "username":  this.refs.username.value,
             "group":  this.refs.group.value
-            },
-            this.dest).then((result)=>{
+            }).then((result)=>{
         
                 alert("User updated!");
             }).catch((e)=>{

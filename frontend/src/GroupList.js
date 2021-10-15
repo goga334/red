@@ -1,17 +1,17 @@
 import  React, { Component } from  'react';
 import Service  from  './Service';
 
-const  userService  =  new  Service();
-const  groupService  =  new  Service();
+const  userService  =  new  Service('user');
+const  groupService  =  new  Service('group');
 
 class  GroupList  extends  Component {
 
     constructor(props) {
         super(props);
-        this.dest = 'group'
         this.state  = {
             groups: [],
-            nextPageURL:  ''
+            nextPageURL:  '',
+            numPages: 0
         };
         this.nextPage  =  this.nextPage.bind(this);
         this.handleDelete  =  this.handleDelete.bind(this);
@@ -19,33 +19,54 @@ class  GroupList  extends  Component {
 
     componentDidMount() {
         var  self  =  this;
-        groupService.getAll(this.dest).then(function (result) {
-            self.setState({ groups:  result.data, nextPageURL:  result.nextlink})
+        groupService.getAll().then(function (result) {
+            self.setState({ groups:  result.data, 
+                            nextPageURL:  result.nextlink,
+                            numPages: result.numpages})
         });
     }
 
-    handleDelete(e,groupToDelete){
+    async handleDelete(e,groupToDelete){
 
         var  self  =  this;
-        var data = {value: groupToDelete.name,
-                    find: 1};
-        userService.checkByValue(data, self.dest).then(function(result) {
-            console.log(result)
-            if (result === '') {
-                groupService.delete({pk :  groupToDelete.pk}, self.dest).then(()=>{
-                    var newArr  =  self.state.groups.filter(function(obj) {
-                        return  obj.pk  !==  groupToDelete.pk;
-                    });
-                self.setState({groups:  newArr})
+        var groupHasUsers = false;
+
+        await userService.getAll().then((result) => {
+            this.nextPageURL = result.nextlink
+            result.data.map(function(c) { 
+                if (c.group === groupToDelete.name){ 
+                groupHasUsers = true;
+                }
+            }) 
+        });
+        
+        if (!groupHasUsers){
+            for (let i=1; i<self.state.numPages; i++){
+                await userService.getByURL(this.nextPageURL).then((result) => {
+                    this.nextPageURL = result.nextlink
+                    if (result.data.includes(groupToDelete)){
+                        groupHasUsers = true;
+                    }
                 });
             }
-            else{alert("Cannot delete a group that has users!")}
-        });
+        }
+            
+        if (groupHasUsers == false) {
+            groupService.delete({pk :  groupToDelete.pk}, self.dest).then(()=>{
+                var newArr  =  self.state.groups.filter(function(obj) {
+                    return  obj.pk  !==  groupToDelete.pk;
+                });
+            self.setState({groups:  newArr})
+            });
+        }
+        else{alert("Cannot delete a group that has users!")}
+
+        this.componentDidMount()
     }
 
     nextPage(){
         var  self  =  this;
-        groupService.getByURL(this.state.nextPageURL, this.dest).then((result) => {
+        groupService.getByURL(this.state.nextPageURL).then((result) => {
             self.setState({ groups:  result.data, nextPageURL:  result.nextlink})
         });
     }

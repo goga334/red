@@ -1,13 +1,12 @@
 import  React, { Component } from  'react';
 import Service  from  './Service';
 
-const  groupService  =  new  Service();
+const  groupService  =  new  Service('group');
 
 class  GroupCreateUpdate  extends  Component {
 
     constructor(props) {
         super(props);
-        this.dest = 'group'
         this.handleSubmit = this.handleSubmit.bind(this);
     }
 
@@ -46,11 +45,9 @@ class  GroupCreateUpdate  extends  Component {
         groupService.create(
             {
             "find": 0,
-            "obj": "group",
             "name":  this.refs.name.value,
             "description":  this.refs.description.value
-            }, 
-            this.dest).then((result)=>{
+            }).then((result)=>{
                     alert("Group created!");
             }).catch((e)=>{
                     alert(e.response.data.name);
@@ -61,11 +58,9 @@ class  GroupCreateUpdate  extends  Component {
         groupService.update(
             {
             "pk":  pk,
-            "obj": "group",
             "name":  this.refs.name.value,
             "description":  this.refs.description.value
-            },
-            this.dest).then((result)=>{
+            }).then((result)=>{
                 alert("Group updated!");
             }).catch((e)=>{
                 alert(e.response.data.name);
@@ -76,7 +71,7 @@ class  GroupCreateUpdate  extends  Component {
             const { match: { params } } =  this.props;
             if(params  &&  params.pk)
             {
-                groupService.getById(params.pk, this.dest).then((c)=>{
+                groupService.getById(params.pk).then((c)=>{
                     this.refs.name.value  =  c.name;
                     this.refs.description.value  =  c.description;
                 })

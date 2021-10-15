@@ -16,10 +16,12 @@ def list(request):
         data = []
         nextPage = 1
         previousPage = 1
+
         if 'user' in request.path:
             requestObjects = User.objects.all()
         else:
             requestObjects = Group.objects.all()
+
         page = request.GET.get('page', 1)
         paginator = Paginator(requestObjects, 10)
         try:
@@ -45,27 +47,17 @@ def list(request):
                         'nextlink': f'{request.path}?page={str(nextPage)}', 
                         'prevlink': f'{request.path}?page={str(previousPage)}'})
 
-    elif request.method == 'POST':
-        if json.loads(request.body)['find'] == 1:
-            try:
-                print(json.loads(request.body)['value'])
-                if User.objects.filter(group=json.loads(request.body)['value']):
-                    return Response('There is at least one')
-                else:
-                    return Response('')
-            except User.DoesNotExist or Group.DoesNotExist:
-                return Response('')
-
+    elif request.method == 'POST':    
+        
+        if 'user' in request.path:
+            serializer = UserSerializer(data=request.data)
         else:
-            if 'user' in request.path:
-                serializer = UserSerializer(data=request.data)
-            else:
-                serializer = GroupSerializer(data=request.data)
+            serializer = GroupSerializer(data=request.data)
 
-            if serializer.is_valid():
-                serializer.save()
-                return Response(serializer.data, status=status.HTTP_201_CREATED)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(['GET', 'PUT', 'DELETE'])
@@ -87,10 +79,12 @@ def detail(request, pk):
         return Response(serializer.data)
 
     elif request.method == 'PUT':
+        
         if 'user' in request.path:
             serializer = UserSerializer(obj, data=request.data,context={'request': request})
         else:
             serializer = GroupSerializer(obj, data=request.data,context={'request': request})
+
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
